@@ -75,7 +75,7 @@ static int atoi_simple(const char *s) {
     int num = 0;
     int sign = 1;
 
-    // Skip leading whitespace if any
+    // Skip leading whitespace or junk
     while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r') s++;
 
     if (*s == '-') {
@@ -87,7 +87,6 @@ static int atoi_simple(const char *s) {
         num = num * 10 + (*s - '0');
         s++;
     }
-
     return sign * num;
 }
 
@@ -128,12 +127,11 @@ void PRINT(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
 
-    char buf[32];
+    char buf[64]; // Increased size for safety
 
     while (*fmt) {
         if (*fmt == '%' && *(fmt + 1)) {
             fmt++;
-
             if (*fmt == 'd') {
                 int val = va_arg(args, int);
                 itoa(val, buf);
@@ -141,39 +139,49 @@ void PRINT(const char *fmt, ...) {
             }
             else if(*fmt == 's') {
                 char *s = va_arg(args, char *);
-                OS_WRITE(s);
+                if (s) OS_WRITE(s);
+                else OS_WRITE("(null)");
             }
             else if(*fmt == 'f'){
+                // Variadic floats are always passed as doubles
                 double d = va_arg(args, double);
-                float f = (float)d;
-
-                ftoa(f, buf, 2);
+                ftoa((float)d, buf, 2);
                 OS_WRITE(buf);
             }
         } else {
-            char c[2] = {*fmt, '\0'};
-            OS_WRITE(c);
+            // Write single character efficiently
+            OS_PUTCHAR(*fmt);
         }
         fmt++;
     }
-
     va_end(args);
 }
+
 
 //READ
 void READ(const char *fmt, void *out) {
     char buffer[INPUT_BUFFER_SIZE];
 
-    //get raw input from OS layer
-  OS_READ(buffer, INPUT_BUFFER_SIZE);  
-
-    if(fmt[0] == '%' && fmt[1] == 'd') {
-        *(int *)out = atoi_simple(buffer);
+    // 1. Initialize buffer with null terminators
+    for (int i = 0; i < INPUT_BUFFER_SIZE; i++) {
+        buffer[i] = '\0';
     }
-    else if(fmt[0] == '%' && fmt[1] == 's') {
+
+    // 2. Call the OS layer to get the string
+    OS_READ(buffer, INPUT_BUFFER_SIZE);  
+
+    // 3. Perform conversion based on format string
+    if (fmt[0] == '%' && fmt[1] == 'd') {
+        // Convert to integer
+        *(int *)out = atoi_simple(buffer);
+        
+    }
+    else if (fmt[0] == '%' && fmt[1] == 's') {
+        // Copy string
         my_strncpy((char *)out, buffer, INPUT_BUFFER_SIZE);
     }
-    else if(fmt[0] == '%' && fmt[1] == 'f'){
+    else if (fmt[0] == '%' && fmt[1] == 'f') {
+        // Convert to float
         *(float *)out = atof_simple(buffer);
     }
 }

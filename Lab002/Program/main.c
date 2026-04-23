@@ -4,18 +4,14 @@ void main() {
 
     OS_INIT();  
 
-    int num1, num2, sum;
-    float float1, float2, sum2;
+    static int num1, num2, sum;
+    static float float1, float2, sum2;
 
     PRINT("Program: Add Two Numbers\n");
 
     while (1) {
         PRINT("------------------------------\n");
 
-        char test_buf[64];
-        PRINT("Type something: ");
-        OS_READ(test_buf, 64);
-        PRINT("The OS received: [%s]\n", test_buf);
 
         PRINT("Enter first number: ");
         READ("%d", &num1);

@@ -95,10 +95,16 @@ echo
 echo ">>> Starting OS at $OS_ADDR"
 echo "go $OS_ADDR" >&3
 
+# Close the file descriptor so the serial port is free
+exec 3>&-
+
 echo
 echo "================================"
-echo " System running. UART output:"
+echo " System running. Switching to screen..."
+echo " To exit: Press Ctrl+A then K, then Y"
 echo "================================"
 echo
 
-cat <&3
+# Launch screen to take over the serial port interactively
+sleep 1
+screen "$SERIAL_PORT" "$BAUD_RATE"
