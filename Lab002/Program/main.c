@@ -10,7 +10,6 @@ void main() {
     PRINT("Program: Add Two Numbers\n");
 
     while (1) {
-        PRINT("------------------------------\n");
 
 
         PRINT("Enter first number: ");
